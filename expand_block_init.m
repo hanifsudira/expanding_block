@@ -1,4 +1,4 @@
-classdef expbls
+classdef expand_block_init
     %expanding block algorithm settings
     properties
         blockSize = 32 
