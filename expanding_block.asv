@@ -15,9 +15,7 @@ function [mask, imgOut] = expanding_block(imIn, varargin)
             elsewhere
 
     imgOut: the original image, grayscaled, except at pixels with '1's in
-            the mask. these areas are given red channel values of 255.
- 
-
+            the mask. these areas are given red channel values of 255. 
 %}
 %%  0 input handling:
 imgIn = import_image(imgIn);
@@ -25,10 +23,10 @@ imgIn = import_image(imgIn);
 % grayscale image and trim so that blockDistance / blockSize
 
 if size(imgIn, 3) == 3
-    img_gray_full = rgb2gray(imgIn);
+    im_gray_full = rgb2gray(imgIn);
 elseif size(imgIn, 3) == 1
     warning('Image only has single channel: treating as grayscale');
-    img_gray_full = imgIn;
+    im_gray_full = imgIn;
 else
     error('Image not RGB or single-channel')
 end
@@ -40,13 +38,13 @@ if nargin == 2
 else
     init = expand_block_init;
 end
-overScan = mod(size(img_gray_full), init.blockDistance);
+overScan = mod(size(im_gray_full), init.blockDistance);
 
 % hold extra pixels for reconstruction later:
-extraPixels = img_gray_full( (end-overScan(1)) : end, (end-overScan(2)):end);
+extraPixels = im_gray_full( (end-overScan(1)) : end, (end-overScan(2)):end);
 
 % trim
-img = img_gray_full( 1:end-(overScan(1)), 1:(end-overScan(2)) );
+img = im_gray_full( 1:end-(overScan(1)), 1:(end-overScan(2)) );
 
 %% 1: Divide an image into small overlapping blocks of blockSize^2
 
@@ -116,7 +114,7 @@ end
 
 %% 10. Cleanup: Create mask image from duplicated blocks;
 
-mask = create_mask(bucket)      % this doesn't exist yet. bear with me!
-imgOut = mask(img_gray_full,                        % or this
+mask = create_mask(bucket)
+img
 
 end
