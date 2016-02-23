@@ -1,7 +1,8 @@
-function [mask, imgOut] = expanding_block(imIn, varargin)
+function [mask, imgOut] = expanding_block(imgIn, varargin)
 % an expanding block algorithm to detect copy-paste duplication within
 % an image
-%% input and output
+
+%% PROGRAM DESCRIPTION:
 % INPUT
 %{
     imIn: a RGB image, either as an mxnx3 array or a string
@@ -17,6 +18,38 @@ function [mask, imgOut] = expanding_block(imIn, varargin)
     imgOut: the original image, grayscaled, except at pixels with '1's in
             the mask. these areas are given red channel values of 255.
  
+% LIST OF DEPENDENCIES
+OBJECTS:
+expand_block_init: an OBJECT which contains the parameters for this
+suppose the image has N overlapping blocks of size P^2
+
+block:
+    block.pixel: an Nx1 cell array. Each element is NxN uint8 gpuArray
+
+    block.dim: a 2-element vector containning the # of blocks that fit into
+    each dimension of the image
+
+    block.avg_gray: a size-N double vector containing the average gray
+    values of the corresponding element in block.pixel
+
+    block.variance: a size-N double vector containing the variance of the 
+    corresponding element in block.pixel
+
+    std-deviation: a size-N double vector containing the std_deviation of
+    the corresponding element in block.pixel
+
+    block.x: a size-N double vector containing x position of the
+    corresponding element in block.pixel
+
+    block.y: a size-N double vector containing x position of the
+    corresponding element in block.pixel
+
+
+import_image(imgIn): imports an image as %FILENAME or m x n x 3 matrix
+img_to_subBlocks(img, init): creates init.blockDistance sized subBlocks
+quad_overlap(subBlock): creates overlapping blocks (init.blockDistance^2)
+in size from subBlocks; records x-position and y-position of starting
+blocks and holds in array
 
 %}
 %%  0 input handling:
@@ -58,7 +91,7 @@ EFRON'S METHOD:
 subBlock = img_to_subBlocks(img, init);
 
 
-block = quad_overlap(subBlock);     
+[block.x, block.y, block.pixels] = quad_overlap_gpu(subBlock);     
 
 
 %{
@@ -69,7 +102,7 @@ TAYLOR'S METHOD:
 %% 2. For each block, compute the average gray value as dominnt feature
 
 % We also compute variance
-[avg_gray, variance] = block_variance(block);
+[block.avg_gray, block.variance] = block_variance(block.pixels);
 
 
 
@@ -81,7 +114,8 @@ ENHANCED EXPANDING BLOCK ALGORITHM
     here, sorted is the column vector of variance {0<V<255*blockSize^2}
     and key is the corresponding block in the original decomposition
 %}
-[key, sorted] = dominant_sort(variance);
+[key, sorted] = block_sort(variance);
+% find XY: starting position
 %{
 REGULAR EXPADING BLOCK ALGORITHM:
     here, sorted is the columm vector of average gray values {0<G<255}
@@ -89,7 +123,7 @@ REGULAR EXPADING BLOCK ALGORITHM:
 [key, sorted] = dominant_sort(avg_gray);
 
 %}
-Find variance: expanding block level
+%Find variance: expanding block level
 % find variance of gray level in blocks:
 
 
@@ -112,11 +146,11 @@ parfor n=1:numel(buckets)
     end
 end
 
-end
 
 %% 10. Cleanup: Create mask image from duplicated blocks;
-
-mask = create_mask(bucket)      % this doesn't exist yet. bear with me!
-imgOut = mask(img_gray_full,                        % or this
-
+mask = create_mask(bucket, init, size(img_gray_full)); 
+% this a matrix of ZEROS where the image is presumed 'clean' and ONES there
+% the image is presumed to have copy-pasted elements
+imgOut = write_masked(mask, img_gray_full);       
+% this image is GRAYSCALE
 end

@@ -18,4 +18,5 @@ dict = [word,key];
 sorted_dict = sortrows(dict);
 key = sorted_dict(:, 2);
 sorted = sorted_dict(:, 1);
+
 end
