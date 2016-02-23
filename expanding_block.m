@@ -52,10 +52,12 @@ in size from subBlocks; records x-position and y-position of starting
 blocks and holds in array
 
 %}
+
+
 %%  0 input handling:
 imgIn = import_image(imgIn);
 
-% grayscale image and trim so that blockDistance / blockSize
+% grayscale image and trim to a size divisible by init.blockDistance
 
 if size(imgIn, 3) == 3
     img_gray_full = rgb2gray(imgIn);
@@ -70,15 +72,19 @@ assert(nargin <= 2, 'at most one varargin')
 
 if nargin == 2
     init = varargin{1};
+    assert(isa(init, 'expand_block_init'), ['varargin must be an' ...
+        'expand_block init OBJECT']);
 else
     init = expand_block_init;
 end
+
 overScan = mod(size(img_gray_full), init.blockDistance);
-
-% hold extra pixels for reconstruction later:
+%{ 
+%hold extra pixels for reconstruction later:
 extraPixels = img_gray_full( (end-overScan(1)) : end, (end-overScan(2)):end);
+%}
 
-% trim
+
 img = img_gray_full( 1:end-(overScan(1)), 1:(end-overScan(2)) );
 
 %% 1: Divide an image into small overlapping blocks of blockSize^2
@@ -90,9 +96,12 @@ EFRON'S METHOD:
 %}
 subBlock = img_to_subBlocks(img, init);
 
+% CREATE BLOCKS
 
-[block.x, block.y, block.pixels] = quad_overlap_gpu(subBlock);     
-
+% Create block:
+block = overlap_block;
+block.dim = size((img-init.blockSize)./init.blockDistance);
+[block.x, block.y, block.pixel] = quad_overlap_gpu(subBlock);
 
 %{
 TAYLOR'S METHOD:
@@ -102,8 +111,7 @@ TAYLOR'S METHOD:
 %% 2. For each block, compute the average gray value as dominnt feature
 
 % We also compute variance
-[block.avg_gray, block.variance] = block_variance(block.pixels);
-
+[block.avg_gray, block.variance] = block_variance(block.pixel);
 
 
 %% 3. Sort the blocks based on the dominant feature
@@ -114,22 +122,17 @@ ENHANCED EXPANDING BLOCK ALGORITHM
     here, sorted is the column vector of variance {0<V<255*blockSize^2}
     and key is the corresponding block in the original decomposition
 %}
-[key, sorted] = block_sort(variance);
-% find XY: starting position
+block = block_sort(block, 'variance');
+
 %{
 REGULAR EXPADING BLOCK ALGORITHM:
     here, sorted is the columm vector of average gray values {0<G<255}
-
-[key, sorted] = dominant_sort(avg_gray);
-
 %}
-%Find variance: expanding block level
-% find variance of gray level in blocks:
+%block = block_sort(block)
 
 
 %% 4. From the sorted blocks, place the blocks evenly into numBuckets groups
 group = assign_to_group(block, init);
-
 
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
@@ -137,7 +140,7 @@ bucket = assign_to_bucket(group);
 
 %% 6-9. Expanding Block Comparison:
 S = ceil(log2(blockSize));  
-S = 1:m;    
+S = 1:m;   
 S = 2.^m;
 
 parfor n=1:numel(buckets)

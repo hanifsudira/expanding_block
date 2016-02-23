@@ -4,7 +4,7 @@ classdef expand_block_init
         blockSize = 32 
         % width and height of a block; total is blockSizeAin^2.
         
-        blockDistance = 8   
+        blockDistance = 16   
         % distance between blocks; generally 1/4 of block size
         
         numBuckets
@@ -13,7 +13,7 @@ classdef expand_block_init
         pvalThreshold
         % a value betwen 0 and 1 used for probability threshold
         
-        minArea
+        minArea = 512
         %minimum area of duplicated region
     end
 end

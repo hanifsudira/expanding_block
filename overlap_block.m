@@ -5,7 +5,7 @@ classdef overlap_block
         dim      %dimension
         avg_gray
         variance
-        std_deviation
+        std_dev
         x
         y
     end

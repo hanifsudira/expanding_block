@@ -1,7 +1,9 @@
 function block = block_sort(block, varargin)
 % sorts lexigraphically blocks by average gray value or variance
 % input: block_sort(block, 'variance') sorts by variance
-assert(isa(block, 'block'), ['first input is a %s'...
+% note: no for loops! pretty neat, huh?
+
+assert(isa(block, 'overlap_block'), ['first input is a %s'...
     'must be a BLOCK object'], class(block))
 col = @(t) reshape(t, numel(block.pixel), 1);
 
@@ -23,6 +25,7 @@ else
     block.avg_gray = SORTED(:, 1);
     block.variance = SORTED(:, 5);
 %end
+
 block.x = SORTED(:, 3);
 block.y = SORTED(:, 2);
 key = SORTED(:, 4);
