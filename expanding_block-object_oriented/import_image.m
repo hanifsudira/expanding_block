@@ -14,5 +14,5 @@ if isa(imIn, 'char')
     end
     imOut = imread(imIn);
 else
-    imOut = gpuArray(imIn);
+    imOut = imIn;
 end
