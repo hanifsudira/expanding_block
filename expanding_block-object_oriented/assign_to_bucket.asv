@@ -21,8 +21,6 @@ for i=1:numel(group)
         
     else 
         bucket{i}.pixel = [group{i}.pixel, group{i+1}.pixel];
-        bucket{i}.x = [group{i}.x, group{i+1}.x]
-        bucket{i}.y = [group{i}.y, group{i+1}.y]
-        bucket{i}.variance = [group{i}.variance, group{i+1}.variance]
+        bucket
     end
 end

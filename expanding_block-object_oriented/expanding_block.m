@@ -125,7 +125,6 @@ ENHANCED EXPANDING BLOCK ALGORITHM
     and key is the corresponding block in the original decomposition
 %}
 block = block_sort(block, 'variance');
-
 %{
 REGULAR EXPADING BLOCK ALGORITHM:
     here, sorted is the columm vector of average gray values {0<G<255}

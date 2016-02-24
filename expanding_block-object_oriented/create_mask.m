@@ -13,7 +13,7 @@ y1 = cellfunc(pully, recombined, 'UniformOutput', false);
 x2 = x1+(init.blockSize-1);
 y2 = y1+(init.blockSize-1);
 
-X = @(m) x1(m):y1(m);
+X = @(m) x1(m):x2(m);
 Y = @(m) y1(m):y2(m);
 for m=1:M
     mask(X(m), Y(m)) = mask(X(m), Y(m))+1;
