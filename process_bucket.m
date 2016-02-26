@@ -1,81 +1,85 @@
 function bucket = process_bucket(bucket, S, init)
-% NOTE: I'M NOT SURE WHAT SIGMA SHOULD BE
-% process the bucket comparing regions of size S^2
-N = numel(bucket);
-blockSize = size(bucket{1}, 1);
-blockSize = blockSize(:);   % forcing to be vector array
 
-errorstr = sprintf(['blockSize calculated within function procss_bucket: \n', 
-    '   %g does not equal init.Blocksize: \n    %g'], ...
-    blockSize, init.blockSize);
-assert(blockSize == init.blockSize, errorstr)
+N = numel(bucket.pixel);
 
-connection = zeros(N, 'gpuArray')+1;
+% create an N x N connection matrix, set to ones
+connection = zeros(N)+1;
 
-% If the two blocks are less than blockSize away, the blocks overlap:
-overlap = zeros(N, 'gpuArray');
+% If two blocks are less than blockSize away, they overlap
+overlap = zeros(N);
 for n=1:N
-    overlap(n, :) = ( abs(x(n)-x)+abs(y(n)-y) ) <blockSize;
+    overlap(n, :) = (abs(bucket.x(n)-block.x) + abs(block.y(n)-block.y) < ...
+        init.blockSize);
 end
 
-% Compute the test statistic for every pairwise comparison for the UPPER
-% LEFT S x S square of each block in the bucket. If for some block
-% comparison, Pr(chi^2>t) <init.pvalThreshold where chi^2 follows a
-% chi-squared distribution with S62 degrees of feedom, then set
-% connection(i, j) to 0 for these blocks.
+% sigma is an estimate of the pooled variance of the blocks
+sigma = zeros(N);
+var = bucket.variance;
 
-temporary_placeholder = 1;
-sigma = temporary_placeholder;
-warning('Sigma is currently a temporary placeholder')
+parfor n=1:N
+    sigma(n, :) = sqrt(var+var(n))/2;
+end
 
-%{
-TODO: implement sigma correctly
-%}
+sigma = num2cell(sigma);
 
-% seperate into SxS sub-squares
-
-s_index = @(A) A(1:S, 1:S);
-s_subBlock = cellfunc(s_index, bucket, 'UniformOutput', false);
+s_index = @(pixel) pixel(1:S, 1:S);
+%% Compare the top-left SxS square of each block
 
 
-% compute test statistic
-t = @(A, B, sigma) norm(A-B)/(sigma^2)*blockSize;
-less_than_threshhold = gpuArray(@(A) A>init.pvalThreshhold);
+s_subBlock = cellfun(s_index, bucket.pixel, 'UniformOutput', false);
 
-test_statistic = cellfunc(t, s_subBlock, 'UniformOutput', false);
-warning('This test statistic is for the basic, not enhanced, algorithm')
+s_subBlock = repmat(s_subBlock, 1, N);  % we copy to avoid for loops;
 
-%{
-TODO: implement test statistic for ENHANCED expanding block algoirthm
-%}
 
-%%if test statistic less than threshhold, set conection(i, j) to zero:
-significant = cellfunc(less_than_threshhold, test_statistic, ...
-    'UniformOutput',false);
+% create test statistic to determine whether blocks are too similar
+    test = @(pixel1, pixel2, sigma) norm(pixel1-pixel2) / ( ...
+        (sigma^2)*init.blockSize);
+    test_statistic = zeros(N);
+    pixel2 = s_subBlock(:, 1)';
+parfor j = 1:N
+    test_statistic(j, :) = cellfun(test, s_subBlock(j, :), pixel2, sigma(j, :));
+end
 
-connection = connection - (overlap | significant);
+
+too_similar  = test_statistic > init.pvalThreshold;
+
+
+% if test statistic is greater than threshless than threshhold OR blocks
+% overlap, set the connection matrix to zero there
+connection = connection - (or(overlap, too_similar));
 
 % for each row in the connection matrix, if that row is all zeros, then the
-% block corresponding to that row is not connected ot any other block in
-% the bucket
+% block corresponding to that row is not connection to any other block in
+% that bucket; remove that block from the bucket
 
-to_keep = cell(N, 1);
-
-held = 0; % this is the counter of how many elements we keep
+% we create an a dictionary of nonzero rows, hold in to_keep, then overwrite
+% bucket:
+m = 0;
+key = zeros(N, 1);
+row_nonzero = any(connection');
 for n=1:N
-    if ~(isempty(connection(n, :)))
-       held = held+1;
-       to_keep{held} = bucket{n};
+    if row_nonzero(n)
+       m = m+1;
+       key(m) = n;
     end
 end
+key = nonzeros(key);
+% 
+to_keep = overlap_block;
+to_keep.pixel = bucket.pixel(key);
+to_keep.x = bucket.x(key);
+to_keep.y = bucket.y(key);
+to_keep.variance = bucket.variance(key);
 
-bucket = to_keep(1:m);
 
-%%9. Compute total remaining area of bucket, and discard remaning elments
-%%if the total area is less than minArea
-
-totalArea = numel(bucket)*blockSize^2;
-if totalArea < init.minArea
-    bucket = {};    %  this is the output
+%% DIAGNOSTICS:
+try assert(any(too_similar), '')
+catch
+    warning('no blocks are similar. \n init.pvalThreshhold = %g \n', ...
+        init.pvalThreshold);
+end
+try assert(any(diag(test_statistic)) == 0)
+catch
+    warning('diagonal elements of test_statistic do not match!')
 end
 end
