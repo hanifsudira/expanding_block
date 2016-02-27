@@ -1,9 +1,12 @@
-function [avg_gray, variance, std_dev] = block_variance(pixel)
-% find the variance of a block and output as a column vector
-f_mean = @(A) sum(A(:)/numel(A));
-f_variance = @(A, avg) sum(A(:)-avg);
-avg_gray =  num2cell(cellfun(f_mean, pixel)); % cell for cellfunc
-variance = cellfun(f_variance, pixel, avg_gray);
-variance = reshape(variance, numel(variance), 1);
-std_dev = sqrt(variance);
+function block = block_variance(block)
+assert(isa(block, 'overlap_block'), ['input should be an overlapping_block' ...
+    '\nis a: %s'], class(block));
+% find variance of the block:
+
+f_mean = @(pixel) sum(pixel(:)/numel(pixel));
+f_variance = @(pixel, mean) sum(pixel-mean);
+col = @(A) reshape(A, [], 1);
+
+block.avg_gray =  col((cellfun(f_mean, block.pixel)), [], 1);
+block.variance = col( cellfun(f_variance, pixel, num2cell(block.avg_gray)));
 end

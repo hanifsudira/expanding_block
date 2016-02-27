@@ -17,5 +17,5 @@ y_start = zeros(numel(block));
 parfor m=1:numel(block)
     block{m} = [upper_left{m}, upper_right{m}; ...
         lower_left{m}, lower_right{m} ];
-    
+end
 end

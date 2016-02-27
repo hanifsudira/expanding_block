@@ -5,6 +5,9 @@ recombined = bucket{1:N};
 M = numel(recombined);
 mask = zeros(img_size);
 
+x = zeros(M, 1);
+y = zeros(M, 1);
+
 pullx = @(block) block.x;
 pully = @(block) block.y;
 
@@ -13,9 +16,7 @@ y1 = cellfunc(pully, recombined, 'UniformOutput', false);
 x2 = x1+(init.blockSize-1);
 y2 = y1+(init.blockSize-1);
 
-X = @(m) x1(m):x2(m);
-Y = @(m) y1(m):y2(m);
 for m=1:M
-    mask(X(m), Y(m)) = mask(X(m), Y(m))+1;
+    mask(x1(m):x2(m), y1(m):y2(m)) = 1;
 end
 end
