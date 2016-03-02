@@ -1,4 +1,10 @@
-function blocks=blockMaker(img, init)
+function block = blockMaker(img, init)
+
+%% Efron's Notes:
+%I preallocated the arrays for speed. Didn't bother with vectorizing or w/e
+%because that's what got me into so much trouble in the first place.
+
+% We now keep track of the x and y starting position and correctly 
 %This function takes in a trimmed matrix representing the grayscale of an
 %image, refered to as 'img', and will return a linear array of overlaping 
 %pixel blocks, called 'blocks'.  Each block is a matrix of size 
@@ -15,87 +21,49 @@ function blocks=blockMaker(img, init)
 %Test results:
 %Test1- 410x620 size image, made 2440 20x20 size blocks in 0.184299 sec
 %Test2- 1024x1280 size image, made 4977 32x32 size blocks in 0.631426 sec
+%% INPUT CHECK
 
 
-%--------------------------------------------------------------------------
-
-%rows and cols will hold number or matrox rows and cols
-[rows cols]=size(img);
-%initially set to size of 1 will concat in function.  
-blocks=cell(1);
-
-%innerCount is the number of blocks traversing matrix Left to right.  
-%This will be the number of iterations in the innner loop.
-innerCount=(cols-init.blockDistance)/init.blockDistance;
-
-%outerCount is the number of shifts down the matrix, aka the number of
-%iterations for the outer loop.
-outerCount=(rows-init.blockDistance)/init.blockDistance;
+assert(isnumeric(img) && size(img, 3) == 1, ['input "img" should be a', ...
+    'grayscale image']);
+assert(isa(init, 'expand_block_init'), ['input "init" should be an' ...
+    'expanding block init object']);
+TRIMMED = not(any(mod(size(img), init.blockDistance)));
+assert(TRIMMED, ['image is not trimmed: size is: \n %g, %g,' ...
+    'which is not divisible by \n init.blockDistance: %g \n'], ...
+    size(img, 1), size(img, 2), init.blockDistance);
 
 
-%These variables are values hold the row numbers of the matricies being
-%built. These change once the builder reaches the left col.
-rowStart=1;
-rowEnd=init.blockSize;
 
-for i=1:outerCount
-    %These variables are values hold the col numbers of the matricies being
-    %built. These change with each iteration of the inner loop.
-    colStart=1;
-    colEnd=init.blockSize-1;
-    
-    for j=1:innerCount
-        block=img(rowStart:rowEnd,colStart:colEnd); %making a block
-        blocks= [blocks block]; %concating the block into the array
-        colStart=colStart+init.blockDistance;  %shifting to the next cols
-        colEnd=colEnd+init.blockDistance;
+
+%% CREATE BLOCKS
+
+blockDim = (size(img))./init.blockDistance - ...
+    (init.blockSize/init.blockDistance) + 1;
+pixel = cell(blockDim);
+x = zeros(blockDim);
+y = zeros(blockDim);
+
+rowStart = 1;
+rowEnd = init.blockSize;
+
+for i = 1:blockDim(1);
+    colStart = 1;
+    colEnd = init.blockSize;
+    for j=1:blockDim(2)
+        x(i, j) = colStart;
+        y(i, j) = rowStart;
+        pixel{i, j} = img(rowStart:rowEnd, colStart:colEnd);
+        colStart = colStart+init.blockDistance;
+        colEnd = colEnd+init.blockDistance;
     end
-    
-    %when the inner loop ends this moves down rows
-    rowStart=rowStart+init.blockDistance;
-    rowEnd=rowEnd+init.blockDistance;
+    rowStart = rowStart + init.blockDistance;
+    rowEnd = rowEnd+init.blockDistance;
 end
 
+%% OUTPUT: output as overlap_block object
 
-% -------------------------------------------------------------------------
-% 
-% %This is the same code but with hard coded blockSize and blockDistance, 
-% %used  for testing.
-% 
-% %hardcoded blockDistance & blockSize for testing
-% blockDistance=16;
-% blockSize=32;
-% 
-% [rows cols]=size(img);  
-% blocks=cell(1);
-% 
-% tic
-% innerCount=(cols-blockDistance)/blockDistance;
-% outerCount=(rows-blockDistance)/blockDistance;
-% 
-% 
-% rowStart=1;
-% rowEnd=blockSize;
-% for i=1:outerCount
-%     colStart=1;
-%     colEnd=blockSize;
-%     
-%     for j=1:innerCount
-%         block=img(rowStart:rowEnd,colStart:colEnd);
-%         blocks= [blocks block];
-%         colStart=colStart+blockDistance;
-%         colEnd=colEnd+blockDistance;
-%     end
-%     
-%     rowStart=rowStart+blockDistance;
-%     rowEnd=rowEnd+blockDistance;
-% end
-% toc
-
-%-------------------------------------------------------------------------
-
-%As written, the firsy first element of blocks is an empty cell by degault.
-%this removes that empyer cell
-blocks=blocks(2:end);
-
-end
+block = overlap_block;
+block.pixel = reshape(pixel, [], 1);
+block.x = reshape(x, [], 1);
+block.y = reshape(y, [], 1);
