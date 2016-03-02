@@ -78,14 +78,11 @@ else
     init = expand_block_init;
 end
 
+% area not divisible by blockDistance
 overScan = mod(size(img_gray_full), init.blockDistance);
-%{ 
-%hold extra pixels for reconstruction later:
-extraPixels = img_gray_full( (end-overScan(1)) : end, (end-overScan(2)):end);
-%}
 
-
-img = img_gray_full( 1:end-(overScan(1)), 1:(end-overScan(2)) );
+% trim off overscan area
+img = img_gray_full( 1: (end-overScan(1)) , 1:(end-overScan(2)) );
 
 %% 1: Divide an image into small overlapping blocks of blockSize^2
 
@@ -139,7 +136,7 @@ group = assign_to_group(block, init);
 bucket = assign_to_bucket(group);
 
 %% 6-9. Expanding Block Comparison:
-S = ceil(log2(blockSize));  
+m = ceil(log2(blockSize));  
 S = 1:m;   
 S = 2.^m;
 
@@ -149,8 +146,9 @@ parfor n=1:numel(buckets)
     end
 end
 
+%% 10: TODO: RECOMBINE REMAINING ELEMENTS OF BUCKETS
 
-%% 10. Cleanup: Create mask image from duplicated blocks;
+%% 11. Cleanup: Create mask image from duplicated blocks;
 mask = create_mask(bucket, init, size(img_gray_full)); 
 % this a matrix of ZEROS where the image is presumed 'clean' and ONES there
 % the image is presumed to have copy-pasted elements

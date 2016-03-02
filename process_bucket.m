@@ -8,8 +8,9 @@ connection = zeros(N)+1;
 % If two blocks are less than blockSize away, they overlap
 overlap = zeros(N);
 for n=1:N
-    overlap(n, :) = (abs(bucket.x(n)-block.x) + abs(block.y(n)-block.y) < ...
-        init.blockSize);
+    overlapX = abs(bucket.x(n)-bucket.x) < init.blockSize;
+    overlapY = abs(bucket.y(n)-bucket.y) < init.blockSize; 
+    overlap(n, :) =  or(overlapX, overlapY);
 end
 
 % sigma is an estimate of the pooled variance of the blocks
@@ -17,7 +18,7 @@ sigma = zeros(N);
 var = bucket.variance;
 
 parfor n=1:N
-    sigma(n, :) = sqrt(var+var(n))/2;
+    sigma(n, :) = sqrt(var+var(n))./2;
 end
 
 sigma = num2cell(sigma);
@@ -71,6 +72,8 @@ to_keep.x = bucket.x(key);
 to_keep.y = bucket.y(key);
 to_keep.variance = bucket.variance(key);
 
+%$ OUTPUT BUCKET
+bucket = to_keep;
 
 %% DIAGNOSTICS:
 try assert(any(too_similar), '')
