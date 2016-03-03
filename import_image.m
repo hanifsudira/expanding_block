@@ -15,6 +15,5 @@ if isa(imIn, 'char')
     imOut = imread(imIn);
 else
     imOut = (imIn);
->>>>>>> a4636601dceca7100ec921ef6e2ac4f4b4fbc055
 end
 end
