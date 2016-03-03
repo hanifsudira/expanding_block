@@ -38,8 +38,9 @@ s_subBlock = repmat(s_subBlock, 1, N);  % we copy to avoid for loops;
         (sigma^2)*init.blockSize);
     test_statistic = zeros(N);
     pixel2 = s_subBlock(:, 1)';
-parfor j = 1:N
-    test_statistic(j, :) = cellfun(test, s_subBlock(j, :), pixel2, sigma(j, :));
+for j = 1:N
+    test_statistic(j, :) = cellfun(test, s_subBlock(j, :), ...
+        pixel2, sigma(j, :));
 end
 
 

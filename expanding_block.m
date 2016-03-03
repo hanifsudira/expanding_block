@@ -139,7 +139,7 @@ bucket = assign_to_bucket(group);
 
 %% 6-9. Expanding Block Comparison:
 
-m = ceil(log2(blockSize));  
+m = ceil(log2(init.blockSize));  
 S = 1:m;   
 S = 2.^S;
 
@@ -147,10 +147,11 @@ S = 2.^S;
 % this is the most computationally intensive step. the program can be most
 % significantly computationally improved by improving the speed of this
 % step
-
-parfor n=1:numel(bucket)
-    for m = 1:numel(S)
-        bucket{n} = process_bucket(bucket{n}, S(n))
+N = numel(bucket);
+M = numel(S);
+parfor n=1:N
+    for m = 1:M
+        bucket{n} = process_bucket(bucket{n}, S(m), init)
     end
 end
 
