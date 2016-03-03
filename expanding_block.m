@@ -109,7 +109,7 @@ block = blockMaker(img, init);
 
 % We also compute variance
 
-[block.avg_gray, block.variance] = block_variance(block);
+block = block_variance(block);
 
 
 %% 3. Sort the blocks based on the dominant feature
