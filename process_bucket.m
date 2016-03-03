@@ -1,5 +1,6 @@
 function bucket = process_bucket(bucket, S, init)
 
+%% INPUT SPECIFICATIONS:    
 N = numel(bucket.pixel);
 
 % create an N x N connection matrix, set to ones

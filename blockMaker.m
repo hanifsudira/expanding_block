@@ -64,6 +64,6 @@ end
 %% OUTPUT: output as overlap_block object
 
 block = overlap_block;
-block.pixel = reshape(pixel, [], 1);
-block.x = reshape(x, [], 1);
-block.y = reshape(y, [], 1);
+block.pixel = reshape(pixel, 1, []);
+block.x = reshape(x, 1, []);
+block.y = reshape(y, 1, []);
