@@ -9,6 +9,7 @@ function [mask, imgOut] = expanding_block(imgIn, varargin)
 % Hong-Yuan Mark Liao, Published in 'Information Sciences' Volume 239, pgs
 % 253-265. The version accessed was most recently edited on August 1st,
 % 2013.
+
 %% PROGRAM DESCRIPTION:
 % INPUT
 %{
@@ -67,36 +68,47 @@ imgIn = import_image(imgIn);
 % grayscale image and trim to a size divisible by init.blockDistance
 
 if size(imgIn, 3) == 3
+    
     img_gray_full = rgb2gray(imgIn);
+
 elseif size(imgIn, 3) == 1
+
     warning('Image only has single channel: treating as grayscale');
     img_gray_full = imgIn;
+
 else
+    
     error('Image not RGB or single-channel')
+
 end
 
 assert(nargin <= 2, 'at most one varargin')
-
 if nargin == 2
     init = varargin{1};
     assert(isa(init, 'expand_block_init'), ['varargin must be an' ...
         'expand_block init OBJECT']);
+    
 else
     init = expand_block_init;
+
 end
+
 
 % area not divisible by blockDistance
 overScan = mod(size(img_gray_full), init.blockDistance);
+
 
 % trim off overscan area
 img = img_gray_full( 1: (end-overScan(1)) , 1:(end-overScan(2)) );
 
 %% 1: Divide an image into small overlapping blocks of blockSize^2
+
 block = blockMaker(img, init);
 
 %% 2. For each block, compute the average gray value as dominant feature
 
 % We also compute variance
+
 [block.avg_gray, block.variance] = block_variance(block);
 
 
@@ -117,13 +129,16 @@ block = block_sort(block, 'variance');
 
 
 %% 4. From the sorted blocks, place the blocks evenly into numBuckets groups
+
 group = assign_to_group(block, init);
 
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
+
 bucket = assign_to_bucket(group);
 
 %% 6-9. Expanding Block Comparison:
+
 m = ceil(log2(blockSize));  
 S = 1:m;   
 S = 2.^S;
@@ -139,11 +154,12 @@ parfor n=1:numel(bucket)
     end
 end
 
-% BUCKETS WHICH 'SURVIVE'
 % 11. Cleanup: Create mask image from duplicated blocks;
+
 mask = create_mask(bucket, init, size(img_gray_full)); 
-% this a matrix of ZEROS where the image is presumed 'clean' and ONES there
+% this a matrix of ZEROS where the image is presumed 'clean' and ONES where
 % the image is presumed to have copy-pasted elements
+
 imgOut = write_masked(mask, img_gray_full);       
 % this image is GRAYSCALE
 end
