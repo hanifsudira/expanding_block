@@ -5,14 +5,15 @@ function block = block_sort(block, varargin)
 
 assert(isa(block, 'overlap_block'), ['first input is a %s'...
     'must be a BLOCK object'], class(block))
-col = @(t) reshape(t, numel(block.pixel), 1);
+row = @(t) reshape(t, [], 1);
 
-pixel = col(block.pixel);
-avg_gray = col(block.avg_gray);
-variance = col(block.variance);
-x = col(block.x);
-y = col(block.y);
-key = col(1:N);
+N = numel(block.pixel);
+pixel = row(block.pixel);
+avg_gray = row(block.avg_gray);
+variance = row(block.variance);
+x = row(block.x);
+y = row(block.y);
+key = row(1:N);
 
 if nargin>1 && strcmp(varargin{1}, 'variance')
     SORTED = [variance, y, x, key, avg_gray];
