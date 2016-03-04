@@ -10,7 +10,7 @@ classdef expand_block_init
         numBuckets = 8
         % number of buckets used to compare blocks
         
-        pvalThreshold
+        pvalThreshold = .1
         % a value betwen 0 and 1 used for probability threshold
         
         minArea = 512
