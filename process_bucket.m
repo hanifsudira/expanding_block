@@ -53,7 +53,8 @@ for j = 1:N
         pixel2, sigma(j, :));
 end
 
-too_similar  = test_statistic > init.pvalThreshold;
+pValThreshold = chi2inv(0.95, S^2);
+too_similar  = test_statistic > pValThreshold;
 
 
 % if test statistic is greater than threshless than threshhold OR blocks
@@ -90,7 +91,7 @@ bucket = to_keep;
 try assert(any(too_similar), '')
 catch
     warning('no blocks are similar. \n init.pvalThreshhold = %g \n', ...
-        init.pvalThreshold);
+        pValThreshold);
 end
 try assert(any(diag(test_statistic)) == 0)
 catch
