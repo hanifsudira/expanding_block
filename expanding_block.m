@@ -1,4 +1,5 @@
-function [IMAGE_PRESUMED_MODIFIED, mask, imgOut] = expanding_block(imgIn, varargin)
+function [IMAGE_PRESUMED_MODIFIED, mask, imgOut] =  ...
+    expanding_block(imgIn, varargin)
 % Detects copy-move forgery via an expanding block method.
 
 
@@ -158,10 +159,11 @@ parfor n=1:N
 end
 
 %% 10: FLAG if presumed modified
-for n=1:N
-    fprintf('\nThe contents of bucket(%g) are: \n', n )
-    disp(bucket{n}.pixel)
-end
+% DEBUG:
+% for n=1:N
+%     fprintf('\nThe contents of bucket(%g) are: \n', n )
+%     disp(bucket{n}.pixel)
+% end
 
 IMAGE_PRESUMED_MODIFIED = flag_if_modified(bucket);
 % 11. Cleanup: Create mask image from duplicated blocks;

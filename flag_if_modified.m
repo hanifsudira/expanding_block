@@ -7,7 +7,8 @@ for n=1:N
     bucket_empty(n) = size(bucket{n}.pixel, 1);
     %disp(bucket{n}.pixel)
 end
-disp(bucket_empty)
+%DEBUG:
+% disp(bucket_empty)
 if any(~bucket_empty)
     FLAG = 1;
 else
