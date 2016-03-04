@@ -1,5 +1,5 @@
 function mask = create_mask(bucket, init, imgIn)
-M = 0
+M = 0;
 for n=1:numel(bucket)
 M = M+numel(bucket{n}.pixel);
 end
