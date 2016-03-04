@@ -151,7 +151,9 @@ N = numel(bucket);
 M = numel(S);
 parfor n=1:N
     for m = 1:M
-        bucket{n} = process_bucket(bucket{n}, S(m), init)
+        %DEBUG:
+%            fprintf('\n we are on bucket %g, size of S is %g \n', n, S(m));
+        bucket{n} = process_bucket(bucket{n}, S(m), init);
     end
 end
 

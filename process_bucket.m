@@ -2,7 +2,9 @@ function bucket = process_bucket(bucket, S, init)
 
 %% INPUT SPECIFICATIONS:    
 N = numel(bucket.pixel);
-
+if N == 0
+    return
+end
 % create an N x N connection matrix, set to ones
 connection = zeros(N)+1;
 
@@ -30,19 +32,26 @@ s_index = @(pixel) pixel(1:S, 1:S);
 
 s_subBlock = cellfun(s_index, bucket.pixel, 'UniformOutput', false);
 
-s_subBlock = repmat(s_subBlock, 1, N);  % we copy to avoid for loops;
+s_subBlock = repmat(s_subBlock, N, 1);  % we copy to avoid for loops;
 
 
 % create test statistic to determine whether blocks are too similar
     test = @(pixel1, pixel2, sigma) norm(pixel1-pixel2) / ( ...
         (sigma^2)*init.blockSize);
     test_statistic = zeros(N);
-    pixel2 = s_subBlock(:, 1)';
+    pixel2 = s_subBlock(1, :);
+    
+%% TYPE CONVERSION
+toDouble = @(A) double(A);
+s_subBlock = cellfun(toDouble, s_subBlock, 'UniformOutput', false);
+pixel2 = cellfun(toDouble, pixel2, 'UniformOutput', false);
+sigma = cellfun(toDouble, sigma, 'UniformOutput', false);
+
+
 for j = 1:N
     test_statistic(j, :) = cellfun(test, s_subBlock(j, :), ...
         pixel2, sigma(j, :));
 end
-
 
 too_similar  = test_statistic > init.pvalThreshold;
 
