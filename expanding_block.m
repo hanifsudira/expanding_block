@@ -5,7 +5,7 @@ function [IMAGE_PRESUMED_MODIFIED, mask, imgOut] =  ...
 
 %% ACKNOWLEDGEMENTS:
 % An expanding block algorithm to detect copy-paste duplication within
-% an image. Code based off "An Efficient Expanding Block Algorithm for
+% an image. Code based off "An Efficien t Expanding Block Algorithm for
 % Image Copy-Move Forgery Detection", by Gavin Lynch, Frank Y. Shih, and
 % Hong-Yuan Mark Liao, Published in 'Information Sciences' Volume 239, pgs
 % 253-265. The version accessed was most recently edited on August 1st,
@@ -63,18 +63,44 @@ blocks and holds in array
 %}
 
 
-%%  0 input handling:
+
+
+%%  BOILERPALTE: LOGGING AND TIMING:
+% LOGGING :
+lastToc = 0; tic;
+if ischar(imgIn)
+    LOG = makeLog(strcat('expanding_block', char(imgIn)));
+else
+    LOG = makeLOG('expanding_block');   % LOG FILENAME
+end
+    function timingStr = logTime(functionStr) %logs runtime of function
+        
+        assert(ischar(functionStr), ...
+            'functionStr should be a character array')
+        t = toc-lastToc;
+        timingStr = sprintf('%s completed w/ runtime of %g seconds', ...
+            functionStr, t);
+    end
+    function logIt(FILENAME, STR)% logs STRING to specified FILENAME
+        log = fopen(FILENAME, 'a');
+        fprintf(log, strcat('\n', STR, '\n'));
+        fclose(log);
+    end
+%% 0: IMPORT HANDLING
 imgIn = import_image(imgIn);
+
+currentLog = sprintf('%g by %g image successfullly imported', ...
+    size(imgIn, 1), size(imgIn, 2));
+logIt(LOG, currentLog);
 
 % grayscale image and trim to a size divisible by init.blockDistance
 
 if size(imgIn, 3) == 3
-    
+    logIt(LOG, 'image is RGB')
     img_gray_full = rgb2gray(imgIn);
 
 elseif size(imgIn, 3) == 1
-
-    warning('Image only has single channel: treating as grayscale');
+    logIt(LOG, 'image is single-channel or grayscale')
     img_gray_full = imgIn;
 
 else
@@ -88,9 +114,16 @@ if nargin == 2
     init = varargin{1};
     assert(isa(init, 'expand_block_init'), ['varargin must be an' ...
         'expand_block init OBJECT']);
-    
+    logIt(LOG, 'user has specified the following parameters:')
+    currentLog = sprintf(['blockSize = %g\n', 'blockDistance = %g\n' ...
+        'numBuckets = %g\n', 'pvalThreshhold = %g\n', 'minArea = %g'], ...
+        init.blockSize, init.blockDistance, init.numBuckets, ...
+        init.pvalThreshold, init.minArea);
+    logIt(LOG, currentLog);
+
 else
     init = expand_block_init;
+    logIt(LOG, 'default "expanding_block_init" used')
 
 end
 
@@ -102,16 +135,35 @@ overScan = mod(size(img_gray_full), init.blockDistance);
 % trim off overscan area
 img = img_gray_full( 1: (end-overScan(1)) , 1:(end-overScan(2)) );
 
+% LOG
+currentLog = sprintf('OVERSCAN of %g by %g pixels', ...
+    overScan(1), overScan(2));
+currentLog = strcat(currentLog, sprintf('\n image trimmed to %g by %g', ...
+    size(img, 1), size(img, 2)));
+
+    logIt(LOG, currentLog)
+    logIt(LOG, logTime('0: Input Handling')); lastToc = toc;
+
 %% 1: Divide an image into small overlapping blocks of blockSize^2
 
-block = blockMaker(img, init);
+try block = blockMaker(img, init);
+catch ME
+    errorStr = getReport(ME,'extended');
+    logIt(LOG, errorStr)
+    rethrow(ME)
+end
 
+    logIt(LOG, logTime('1: blockMaker')); lastToc = toc;
 %% 2. For each block, compute the average gray value as dominant feature
 
 % We also compute variance
-
-block = block_variance(block);
-
+try block = block_variance(block);
+catch ME
+    errorStr = getReport(ME,'extended');
+    logIt(LOG, errorStr)
+    rethrow(ME)
+end
+logIt(LOG, logTime('2: block_variance:')); lastToc = toc;
 
 %% 3. Sort the blocks based on the dominant feature
 % 
@@ -121,23 +173,35 @@ block = block_variance(block);
 %     here, sorted is the column vector of variance {0<V<255*blockSize^2}
 %     and key is the corresponding block in the original decomposition
 %
-
-block = block_sort(block, 'variance');
-
+try block = block_sort(block, 'variance');
+catch ME
+    errorStr = getReport(ME,'extended');
+    logIt(LOG, errorStr)
+    rethrow(ME)
+end
+logIt(LOG, logTime('3: block_sort')); lastToc = toc;
 % REGULAR EXPADING BLOCK ALGORITHM:
 % here, sorted is the columm vector of average gray values {0<G<255}
 % %block = block_sort(block)
 
 
 %% 4. From the sorted blocks, place the blocks evenly into numBuckets groups
-
-group = assign_to_group(block, init);
-
+try group = assign_to_group(block, init);
+catch ME
+    errorStr = getReport(ME,'extended');
+    logIt(LOG, errorStr)
+    rethrow(ME)
+end
+logIt(LOG, logTime('4: assign_to_group')); lastToc = toc;
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
-
-bucket = assign_to_bucket(group);
-
+try bucket = assign_to_bucket(group);
+catch ME
+    errorStr = getReport(ME,'extended');
+    logIt(LOG, errorStr)
+    rethrow(ME)
+end
+logIt(LOG, logTime('5: assign_to_bucket')); lastToc = toc;
 %% 6-9. Expanding Block Comparison:
 
 m = ceil(log2(init.blockSize));  
@@ -154,10 +218,11 @@ parfor n=1:N
     for m = 1:M
         %DEBUG:
 %            fprintf('\n we are on bucket %g, size of S is %g \n', n, S(m));
-        bucket{n} = process_bucket(bucket{n}, S(m), init);
+       bucket{n} = process_bucket(bucket{n}, S(m), init);
     end
 end
 
+logIt(LOG, logTime('6:9: Expanding Block Comparison')); lastToc = toc;
 %% 10: FLAG if presumed modified
 % DEBUG:
 % for n=1:N
@@ -168,11 +233,29 @@ end
 IMAGE_PRESUMED_MODIFIED = flag_if_modified(bucket);
 % 11. Cleanup: Create mask image from duplicated blocks;
 if IMAGE_PRESUMED_MODIFIED
-    mask = create_mask(bucket, init, size(img_gray_full)); 
-    imgOut = write_masked(mask, img_gray_full);       
+    logIt(LOG, 'Image Presumed Modified!')
+    % CREATE MASK
+    try mask = create_mask(bucket, init, size(img_gray_full)); 
+    catch ME
+        errorStr = getReport(ME,'extended');
+        logIt(LOG, errorStr)
+        rethrow(ME)
+    end
+        logIt(LOG, runtime('create_mask'));
+    % WRITE MASK TO OUTPUT IMAGE
+    try imgOut = write_masked(mask, img_gray_full);
+    catch ME
+        errorStr = getReport(ME,'extended');
+        logIt(LOG, errorStr)
+        rethrow(ME)
+       
+    end
+    logIt(LOG, runtime('write_mask'));
 else
+    logIt(LOG, 'Image is CLEAN')
     mask = uint8(zeros(size(imgIn)));
     imgOut = imgIn;
+
 end
 
 % this a matrix of ZEROS where the image is presumed 'clean' and ONES where
@@ -180,4 +263,5 @@ end
 
 
 % this image is GRAYSCALE
+logIt(' FUNCTION RAN!')
 end
