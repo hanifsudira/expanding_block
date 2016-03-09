@@ -16,7 +16,7 @@ for n=1:N
     overlapY = abs(bucket.y(n)-bucket.y) < init.blockSize;
     overlap(n, :) =  and(overlapX, overlapY);
 end
-% sigma is an estimate of the pooled variance of the blocks
+% sigmaSq is an estimate of the pooled variance of the blocks
 sigmaSq = zeros(N);
 var = bucket.variance;
 
@@ -38,7 +38,6 @@ s_subBlock = cellfun(s_index, bucket.pixel, 'UniformOutput', false);
 %end
 s_subBlock = repmat(s_subBlock, N, 1);  % we copy to avoid for loops;
 pixel2 = s_subBlock(1, :)';
-
 
 % create test statistic to determine whether blocks are too similar
     test = @(pixel1, pixel2, sigmaSq) norm(pixel1-pixel2) / ...
@@ -64,8 +63,8 @@ for j = 1:N
         pixel2, sigmaSq(:, j));
 end
 
-pValThreshold = chi2inv(0.95, S^2);
-too_similar  = test_statistic > (pValThreshold/10000);
+pValThreshold = (chi2inv(0.95, S^2))^-1;
+too_similar  = test_statistic > pValThreshold;
 
 
 % if test statistic is greater than threshless than threshhold OR blocks

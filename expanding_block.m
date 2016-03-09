@@ -218,11 +218,21 @@ S = 2.^S;
 % step
 N = numel(bucket);
 M = numel(S);
+process_log = cell(N, M);
 parfor n=1:N
     for m = 1:M
         %DEBUG:
 %            fprintf('\n we are on bucket %g, size of S is %g \n', n, S(m));
        bucket{n} = process_bucket(bucket{n}, S(m), init);
+       process_log{n, m} = sprintf(['the xy co-ordinates of bucket %g ' ...
+           '    after stepsize %g are \n x: \n %s, \n y: \n %s'], ...
+           n, S(m), num2str(bucket{n}.x), num2str(bucket{n}.y))
+           
+    end
+end
+for n=1:N
+    for m=1:M
+        logIt(LOG, process_log{n, m})
     end
 end
 
