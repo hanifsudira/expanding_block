@@ -249,22 +249,22 @@ IMAGE_PRESUMED_MODIFIED = flag_if_modified(bucket);
 if IMAGE_PRESUMED_MODIFIED
     logIt(LOG, 'Image Presumed Modified!')
     % CREATE MASK
-    try mask = create_mask(bucket, init, size(img_gray_full)); 
+    try mask = create_mask(bucket, init, imgIn); 
     catch ME
         errorStr = getReport(ME,'extended');
         logIt(LOG, errorStr)
         rethrow(ME)
     end
-        logIt(LOG, runtime('create_mask'));
+        logIt(LOG, logTime('create_mask'));
     % WRITE MASK TO OUTPUT IMAGE
-    try imgOut = write_masked(mask, img_gray_full);
+    try imgOut = write_mask(mask, imgIn);
     catch ME
         errorStr = getReport(ME,'extended');
         logIt(LOG, errorStr)
         rethrow(ME)
        
     end
-    logIt(LOG, runtime('write_mask'));
+    logIt(LOG, logTime('write_mask'));
 else
     logIt(LOG, 'Image is CLEAN')
     mask = uint8(zeros(size(imgIn)));
