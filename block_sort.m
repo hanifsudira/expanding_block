@@ -1,4 +1,4 @@
-function block = block_sort(block, varargin)
+function [block] = block_sort(block, varargin)
 % sorts lexigraphically blocks by average gray value or variance
 % input: block_sort(block, 'variance') sorts by variance
 % note: no for loops! pretty neat, huh?
@@ -16,7 +16,7 @@ y = row(block.y);
 key = row(1:N);
 
 if nargin>1 && strcmp(varargin{1}, 'variance')
-    SORTED = [variance, y, x, key, avg_gray];
+    SORTED = sortrows([variance, y, x, key, avg_gray]);
     block.variance = SORTED(:, 1);
     block.avg_gray = SORTED(:, 5);
 elseif nargin>1
@@ -25,7 +25,7 @@ else
     SORTED = sortrows([avg_gray, y, x, key, variance]);
     block.avg_gray = SORTED(:, 1);
     block.variance = SORTED(:, 5);
-%end
+end
 
 block.x = SORTED(:, 3);
 block.y = SORTED(:, 2);

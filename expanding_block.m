@@ -86,6 +86,8 @@ end
         fprintf(log, strcat('\n', STR, '\n'));
         fclose(log);
     end
+toRow = @(A) reshape(A, 1, []);
+toCol = @(A) reshape(A, [], 1);
 %% 0: IMPORT HANDLING
 imgIn = import_image(imgIn);
 
@@ -164,6 +166,7 @@ catch ME
     rethrow(ME)
 end
 logIt(LOG, logTime('2: block_variance:')); lastToc = toc;
+logIt(LOG, ['variance is: \n', num2str(block.variance)])
 
 %% 3. Sort the blocks based on the dominant feature
 % 
@@ -180,6 +183,7 @@ catch ME
     rethrow(ME)
 end
 logIt(LOG, logTime('3: block_sort')); lastToc = toc;
+logIt(LOG, ['the SORTED variance is: \n', num2str(toRow(block.variance))]);
 % REGULAR EXPADING BLOCK ALGORITHM:
 % here, sorted is the columm vector of average gray values {0<G<255}
 % %block = block_sort(block)
@@ -263,5 +267,5 @@ end
 
 
 % this image is GRAYSCALE
-logIt(' FUNCTION RAN!')
+logIt(LOG, 'FUNCTION RAN!')
 end
