@@ -1,4 +1,4 @@
-function mask = create_mask(bucket, init,   imgIn)
+function mask = create_mask(bucket, init, imgIn)
 dim = size(imgIn);
 mask = zeros(dim(1), dim(2));
 x1 = [];
@@ -10,8 +10,7 @@ end
 x2 = x1 + init.blockSize-1;
 y2 = y1 + init.blockSize-1;
 N = numel(x1);
-
 for n=1:N
-    X = x1(n):x2(n); Y = y1(n):y2(n);
-    mask(X, Y) = mask(X, Y)+1;
+    mask(y1(n):y2(n), x1(n):x2(n)) = ...
+        mask(y1(n):y2(n), x1(n):x2(n))+1;
 end

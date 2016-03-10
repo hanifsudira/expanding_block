@@ -1,4 +1,4 @@
-function [imgMasked, imgOut] = write_mask(mask, imgIn)
+function [imgOut, imgMasked] = write_mask(mask, imgIn)
 
 % use a mask (matrix of same size comprised of natural numbers)
 % to 'write over' image: 

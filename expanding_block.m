@@ -80,6 +80,7 @@ end
         t = toc-lastToc;
         timingStr = sprintf('%s completed w/ runtime of %g seconds', ...
             functionStr, t);
+        lastToc = toc;
     end
     function logIt(FILENAME, STR)% logs STRING to specified FILENAME
         log = fopen(FILENAME, 'a');
@@ -144,7 +145,7 @@ currentLog = strcat(currentLog, sprintf('\n image trimmed to %g by %g', ...
     size(img, 1), size(img, 2)));
 
     logIt(LOG, currentLog)
-    logIt(LOG, logTime('0: Input Handling')); lastToc = toc;
+    logIt(LOG, logTime('0: Input Handling')); 
 
 %% 1: Divide an image into small overlapping blocks of blockSize^2
 
@@ -155,7 +156,7 @@ catch ME
     rethrow(ME)
 end
 
-    logIt(LOG, logTime('1: blockMaker')); lastToc = toc;
+    logIt(LOG, logTime('1: blockMaker')); 
 %% 2. For each block, compute the average gray value as dominant feature
 
 % We also compute variance
@@ -165,7 +166,7 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
-logIt(LOG, logTime('2: block_variance:')); lastToc = toc;
+logIt(LOG, logTime('2: block_variance:')); 
 logIt(LOG, ['variance is: \n', num2str(block.variance)])
 
 %% 3. Sort the blocks based on the dominant feature
@@ -182,7 +183,7 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
-logIt(LOG, logTime('3: block_sort')); lastToc = toc;
+logIt(LOG, logTime('3: block_sort')); 
 logIt(LOG, ['the SORTED variance is: \n', num2str(toRow(block.variance))]);
 % REGULAR EXPADING BLOCK ALGORITHM:
 % here, sorted is the columm vector of average gray values {0<G<255}
@@ -196,7 +197,7 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
-logIt(LOG, logTime('4: assign_to_group')); lastToc = toc;
+logIt(LOG, logTime('4: assign_to_group')); 
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
 try bucket = assign_to_bucket(group);
@@ -205,7 +206,7 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
-logIt(LOG, logTime('5: assign_to_bucket')); lastToc = toc;
+logIt(LOG, logTime('5: assign_to_bucket')); 
 %% 6-9. Expanding Block Comparison:
 
 m = ceil(log2(init.blockSize));  
@@ -236,16 +237,17 @@ for n=1:N
     end
 end
 
-logIt(LOG, logTime('6:9: Expanding Block Comparison')); lastToc = toc;
+logIt(LOG, logTime('6:9: Expanding Block Comparison')); 
 %% 10: FLAG if presumed modified
-% DEBUG:
-% for n=1:N
-%     fprintf('\nThe contents of bucket(%g) are: \n', n )
-%     disp(bucket{n}.pixel)
-% end
 
-IMAGE_PRESUMED_MODIFIED = flag_if_modified(bucket);
-% 11. Cleanup: Create mask image from duplicated blocks;
+BUCKET_MODIFIED = zeros(numel(bucket), 1);
+for n=1:numel(bucket);
+    if numel(bucket{n}.pixel) > 0
+        BUCKET_MODIFIED(n) = 1;
+    end
+end
+IMAGE_PRESUMED_MODIFIED = any(BUCKET_MODIFIED);
+
 if IMAGE_PRESUMED_MODIFIED
     logIt(LOG, 'Image Presumed Modified!')
     % CREATE MASK
@@ -257,7 +259,7 @@ if IMAGE_PRESUMED_MODIFIED
     end
         logIt(LOG, logTime('create_mask'));
     % WRITE MASK TO OUTPUT IMAGE
-    try imgOut = write_mask(mask, imgIn);
+    try [~, imgOut] = write_mask(mask, imgIn);
     catch ME
         errorStr = getReport(ME,'extended');
         logIt(LOG, errorStr)
@@ -269,7 +271,6 @@ else
     logIt(LOG, 'Image is CLEAN')
     mask = uint8(zeros(size(imgIn)));
     imgOut = imgIn;
-
 end
 
 % this a matrix of ZEROS where the image is presumed 'clean' and ONES where
