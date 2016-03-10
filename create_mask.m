@@ -14,3 +14,4 @@ for n=1:N
     mask(y1(n):y2(n), x1(n):x2(n)) = ...
         mask(y1(n):y2(n), x1(n):x2(n))+1;
 end
+end

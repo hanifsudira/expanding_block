@@ -84,7 +84,9 @@ end
     end
     function logIt(FILENAME, STR)% logs STRING to specified FILENAME
         log = fopen(FILENAME, 'a');
-        fprintf(log, strcat('\n', STR, '\n'));
+        fprintf(log, '\n');
+        fprintf(log, STR);
+        fprintf(log, '\n');
         fclose(log);
     end
 toRow = @(A) reshape(A, 1, []);
@@ -147,6 +149,7 @@ currentLog = strcat(currentLog, sprintf('\n image trimmed to %g by %g', ...
     logIt(LOG, currentLog)
     logIt(LOG, logTime('0: Input Handling')); 
 
+
 %% 1: Divide an image into small overlapping blocks of blockSize^2
 
 try block = blockMaker(img, init);
@@ -156,7 +159,9 @@ catch ME
     rethrow(ME)
 end
 
+
     logIt(LOG, logTime('1: blockMaker')); 
+
 %% 2. For each block, compute the average gray value as dominant feature
 
 % We also compute variance
@@ -166,6 +171,7 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
+
 logIt(LOG, logTime('2: block_variance:')); 
 logIt(LOG, ['variance is: \n', num2str(block.variance)])
 
@@ -198,6 +204,7 @@ catch ME
     rethrow(ME)
 end
 logIt(LOG, logTime('4: assign_to_group')); 
+
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
 try bucket = assign_to_bucket(group);
@@ -207,6 +214,7 @@ catch ME
     rethrow(ME)
 end
 logIt(LOG, logTime('5: assign_to_bucket')); 
+
 %% 6-9. Expanding Block Comparison:
 
 m = ceil(log2(init.blockSize));  
@@ -248,6 +256,8 @@ for n=1:numel(bucket);
 end
 IMAGE_PRESUMED_MODIFIED = any(BUCKET_MODIFIED);
 
+logIt(LOG, logTime('6:9: Expanding Block Comparison')); 
+% 11. Cleanup: Create mask image from duplicated blocks;
 if IMAGE_PRESUMED_MODIFIED
     logIt(LOG, 'Image Presumed Modified!')
     % CREATE MASK
@@ -271,6 +281,7 @@ else
     logIt(LOG, 'Image is CLEAN')
     mask = uint8(zeros(size(imgIn)));
     imgOut = imgIn;
+
 end
 
 % this a matrix of ZEROS where the image is presumed 'clean' and ONES where
