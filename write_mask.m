@@ -30,13 +30,12 @@ imgMasked = zeros([size(mask), 3]);
 imgMasked(:, :, 1) = imgGray;
 imgMasked(:, :, 2) = imgGray;
 imgMasked(:, :, 3) = imgGray;
-imgGray = imgMasked;
 imgMasked = imgMasked + green_mask + red_mask;
 % every element in imgMasked will have
 % blue and green channel < 0
 separation = zeros([size(mask, 1), 8, 3]);
 separation(:, :, 2) = 255;
 
-imgOut = uint8([imgGray, separation, imgMasked]);
+imgOut = uint8([imgIn, separation, imgMasked]);
 % every element in imgMasked will be grayscale except where mask has 1s,
 end

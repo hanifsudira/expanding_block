@@ -21,7 +21,7 @@ sigmaSq = zeros(N);
 var = bucket.variance;
 
 parfor n=1:N
-    sigmaSq(n, :) = (var+var(n))/4;
+    sigmaSq(n, :) = (var+var(n))/2;
 end
 
 sigmaSq = num2cell(sigmaSq);
@@ -40,8 +40,8 @@ s_subBlock = repmat(s_subBlock, N, 1);  % we copy to avoid for loops;
 pixel2 = s_subBlock(1, :)';
 
 % create test statistic to determine whether blocks are too similar
-    test = @(pixel1, pixel2, sigmaSq) norm(pixel1-pixel2) / ...
-        (sigmaSq.*init.blockSize);
+    test = @(pixel1, pixel2, sigmaSq) reshape((pixel1-pixel2), 1, [])* ...
+        reshape((pixel1-pixel2), [], 1) ./ (sigmaSq./S^2);
     test_statistic = zeros(N);
     
 %% TYPE CONVERSION
@@ -63,13 +63,14 @@ for j = 1:N
         pixel2, sigmaSq(:, j));
 end
 
-pValThreshold = (chi2inv(0.95, S^2))^-1;
+pValThreshold = (chi2inv(0.95, S^2));
+
 too_similar  = test_statistic > pValThreshold;
 
 
 % if test statistic is greater than threshless than threshhold OR blocks
 % overlap, set the connection matrix to zero there
-connection = connection - (or(overlap, ~too_similar));
+connection = connection - (or(overlap, not(too_similar)));
 % for each row in the connection matrix, if that row is all zeros, then the
 % block corresponding to that row is not connection to any other block in
 % that bucket; remove that block from the bucket

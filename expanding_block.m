@@ -71,7 +71,7 @@ lastToc = 0; tic;
 if ischar(imgIn)
     LOG = makeLog(strcat('expanding_block', char(imgIn)));
 else
-    LOG = makeLOG('expanding_block');   % LOG FILENAME
+    LOG = makeLog('expanding_block');   % LOG FILENAME
 end
     function timingStr = logTime(functionStr) %logs runtime of function
         
