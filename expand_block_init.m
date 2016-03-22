@@ -7,13 +7,10 @@ classdef expand_block_init
         blockDistance = 16   
         % distance between blocks; generally 1/4 of block size
         
-        numBuckets = 64
+        numBuckets = 128
         % number of buckets used to compare blocks
         
-        pvalThreshold = .1
-        % a value betwen 0 and 1 used for probability threshold
-        
-        minArea = 512
-        %minimum area of duplicated region
+        pvalThreshold = 9.68
+        % threshold for block comparison
     end
 end
