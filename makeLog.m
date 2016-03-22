@@ -4,7 +4,7 @@ function LOG_FILENAME = makeLog(calling_function_name)
 
 current_time = char(datetime('now','TimeZone','local','Format', ...
     'd-MMM-y-HH_mm'));
-LOG_FILENAME = strcat(current_time, '.txt');
+LOG_FILENAME = strcat(calling_function_name, current_time, '.txt');
 log_out = fopen(LOG_FILENAME, 'w');
 
 introString = sprintf('LOGFILE for %s at %s', ...

@@ -189,8 +189,12 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
+number_of_blocks = numel(block.x);
 logIt(LOG, logTime('3: block_sort')); 
-logIt(LOG, ['the SORTED variance is: \n', num2str(toRow(block.variance))]);
+currentLog = sprintf('split image into %g blocks', number_of_blocks);
+logIt(LOG, currentLog);
+
+%logIt(LOG, ['the SORTED variance is: \n', num2str(toRow(block.variance))]);
 % REGULAR EXPADING BLOCK ALGORITHM:
 % here, sorted is the columm vector of average gray values {0<G<255}
 % %block = block_sort(block)
@@ -204,7 +208,14 @@ catch ME
     rethrow(ME)
 end
 logIt(LOG, logTime('4: assign_to_group')); 
-
+for n=1:numel(group)
+    
+    currentLog = sprintf(['group %g has %g elements, starting with ', ...
+    '(x, y) ordered pair, (%g, %g)'], ...
+    n, numel(group{n}.x), group{n}.x(1), group{n}.y(1));
+    
+    logIt(LOG, currentLog);
+end  % LOG GROUP
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
 try bucket = assign_to_bucket(group);
@@ -213,6 +224,14 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
+
+for n=1:numel(bucket);
+    currentLog = sprintf(['bucket %g has %g elements, starting with ', ...
+    '(x, y) ordered pair, (%g, %g)'], ...
+    n, numel(bucket{n}.x), bucket{n}.x(1), bucket{n}.y(1));
+
+    logIt(LOG, currentLog)
+end  %LOG BUCKET
 logIt(LOG, logTime('5: assign_to_bucket')); 
 
 %% 6-9. Expanding Block Comparison:
@@ -228,24 +247,32 @@ S = 2.^S;
 N = numel(bucket);
 M = numel(S);
 process_log = cell(N, M);
+
 parfor n=1:N
     for m = 1:M
-        %DEBUG:
-%            fprintf('\n we are on bucket %g, size of S is %g \n', n, S(m));
-       bucket{n} = process_bucket(bucket{n}, S(m), init);
-       process_log{n, m} = sprintf(['the xy co-ordinates of bucket %g ' ...
-           '    after stepsize %g are \n x: \n %s, \n y: \n %s'], ...
-           n, S(m), num2str(bucket{n}.x), num2str(bucket{n}.y))
-           
+        
+        bucket{n} = process_bucket(bucket{n}, S(m), init);
+        
+        if isempty(bucket{n}.x)
+            
+            process_log{n, m} = sprintf(['bucket %g is empty after ' ...
+                'stepsize %g'], n, S(m));
+        else
+            process_log{n, m} = sprintf(['bucket %g after stepsize %g' ...
+            'has %g elements, starting with\n   (x, y) = (%g, %g) \n'], ...
+            n, S(m), num2str(bucket{n}.x), num2str(bucket{n}.y));
+        
+        end
     end
 end
+
 for n=1:N
     for m=1:M
         logIt(LOG, process_log{n, m})
     end
-end
+end  % LOG RESULTS
+logIt(LOG, logTime('6:9: Expanding Block Comparison'));; 
 
-logIt(LOG, logTime('6:9: Expanding Block Comparison')); 
 %% 10: FLAG if presumed modified
 
 BUCKET_MODIFIED = zeros(numel(bucket), 1);
@@ -256,7 +283,6 @@ for n=1:numel(bucket);
 end
 IMAGE_PRESUMED_MODIFIED = any(BUCKET_MODIFIED);
 
-logIt(LOG, logTime('6:9: Expanding Block Comparison')); 
 % 11. Cleanup: Create mask image from duplicated blocks;
 if IMAGE_PRESUMED_MODIFIED
     logIt(LOG, 'Image Presumed Modified!')

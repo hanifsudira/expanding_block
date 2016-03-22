@@ -1,7 +1,7 @@
 function bucket = process_bucket(bucket, S, init)
 
     %% INPUT SPECIFICATIONS:    
-N = numel(bucket.pixel);
+N = numel(bucket.x);
 if N == 0
     return
 end
@@ -41,7 +41,7 @@ pixel2 = s_subBlock(1, :)';
 
 % create test statistic to determine whether blocks are too similar
     test = @(pixel1, pixel2, sigmaSq) reshape((pixel1-pixel2), 1, [])* ...
-        reshape((pixel1-pixel2), [], 1) ./ (sigmaSq./S^2);
+        reshape((pixel1-pixel2), [], 1) ./ (sigmaSq./ (S^2) );
     test_statistic = zeros(N);
     
 %% TYPE CONVERSION
@@ -63,23 +63,23 @@ for j = 1:N
         pixel2, sigmaSq(:, j));
 end
 
-pValThreshold = (chi2inv(0.95, S^2));
-
+pValThreshold = 2   ;
 too_similar  = test_statistic > pValThreshold;
-
 
 % if test statistic is greater than threshless than threshhold OR blocks
 % overlap, set the connection matrix to zero there
-connection = connection - (or(overlap, not(too_similar)));
+connection = connection - ( or(overlap, not(too_similar) ) ) ;
 % for each row in the connection matrix, if that row is all zeros, then the
 % block corresponding to that row is not connection to any other block in
 % that bucket; remove that block from the bucket
 
 % we create an a dictionary of nonzero rows, hold in to_keep, then overwrite
 % bucket:
+
+
 m = 0;
 key = zeros(N, 1);
-row_nonzero = any(connection);
+row_nonzero = any(connection');
 for n=1:N
     if row_nonzero(n)
        m = m+1;

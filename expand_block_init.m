@@ -7,7 +7,7 @@ classdef expand_block_init
         blockDistance = 16   
         % distance between blocks; generally 1/4 of block size
         
-        numBuckets = 8
+        numBuckets = 64
         % number of buckets used to compare blocks
         
         pvalThreshold = .1
