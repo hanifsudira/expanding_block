@@ -3,7 +3,6 @@ function group = assign_to_group(block, init)
 group = cell(init.numBuckets, 1);
 N = numel(block.x)/init.numBuckets;
 index = 1:N:numel(block.x);
-disp(numel(block.x))
 index = floor(index);
 for n = 1:(init.numBuckets-1)
     group_start = index(n);
