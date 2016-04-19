@@ -2,7 +2,18 @@ function [block] = block_sort(block, varargin)
 % sorts lexigraphically blocks by average gray value or variance
 % input: block_sort(block, 'variance') sorts by variance
 % note: no for loops! pretty neat, huh?
-
+%% INPUT HANDLING
+SORT_BY_VARIANCE = 0;
+REMOVE_ZERO_VARIANCE_BLOCKS = 0;
+if nargin > 1;
+    for n = 1:length(varargin)
+        if strcmp(varargin{n}, 'variance')
+            SORT_BY_VARIANCE = 1;
+            REMOVE_ZERO_VARIANCE_BLOCKS = 1;
+        end
+    end
+end
+        
 assert(isa(block, 'overlap_block'), ['first input is a %s'...
     'must be a BLOCK object'], class(block))
 row = @(t) reshape(t, [], 1);
@@ -14,13 +25,11 @@ variance = row(block.variance);
 x = row(block.x);
 y = row(block.y);
 key = row(1:N);
-
-if nargin>1 && strcmp(varargin{1}, 'variance')
+%% SORT
+if SORT_BY_VARIANCE
     SORTED = sortrows([variance, y, x, key, avg_gray]);
     block.variance = SORTED(:, 1);
     block.avg_gray = SORTED(:, 5);
-elseif nargin>1
-    error('Second argument: %s, must be "variance" or blank')
 else
     SORTED = sortrows([avg_gray, y, x, key, variance]);
     block.avg_gray = SORTED(:, 1);
@@ -31,4 +40,13 @@ block.x = SORTED(:, 3);
 block.y = SORTED(:, 2);
 key = SORTED(:, 4);
 block.pixel = pixel(key);
+
+%% remove elements with nonzero variance
+if REMOVE_ZERO_VARIANCE_BLOCKS
+    var_nonzero = find(block.variance > 1);
+    block.variance = block.variance(var_nonzero);
+    block.x = block.x(var_nonzero);
+    block.y = block.y(var_nonzero);
+    block.pixel = block.pixel(var_nonzero);
+    block.avg_gray = block.avg_gray(var_nonzero);
 end

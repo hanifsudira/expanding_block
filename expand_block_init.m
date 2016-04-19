@@ -11,6 +11,11 @@ classdef expand_block_init
         % number of buckets used to compare blocks
         
         pvalThreshold = 9.68
-        % threshold for block comparison
+        
+        minArea = nan
+        % threshold f   or block comparison
+        
+        tol = 10^-3
+        % temporary tolerance for svd_block
     end
 end

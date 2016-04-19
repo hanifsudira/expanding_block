@@ -89,8 +89,6 @@ end
         fprintf(log, '\n');
         fclose(log);
     end
-toRow = @(A) reshape(A, 1, []);
-toCol = @(A) reshape(A, [], 1);
 %% 0: IMPORT HANDLING
 imgIn = import_image(imgIn);
 
@@ -183,7 +181,8 @@ logIt(LOG, ['variance is: \n', num2str(block.variance)])
 %     here, sorted is the column vector of variance {0<V<255*blockSize^2}
 %     and key is the corresponding block in the original decomposition
 %
-try block = block_sort(block, 'variance');
+
+try block = block_sort(block, 'variance', 'remove_zero_variance');
 catch ME
     errorStr = getReport(ME,'extended');
     logIt(LOG, errorStr)
@@ -208,6 +207,7 @@ catch ME
     rethrow(ME)
 end
 logIt(LOG, logTime('4: assign_to_group')); 
+%{
 for n=1:numel(group)
     
     currentLog = sprintf(['group %g has %g elements, starting with ', ...
@@ -216,6 +216,7 @@ for n=1:numel(group)
     
     logIt(LOG, currentLog);
 end  % LOG GROUP
+%}
 %% 5.  Create numBuckets buckets. 
 % Place the blocks from groups i-1, i, and i+1 into bucket i.
 try bucket = assign_to_bucket(group);
@@ -224,7 +225,7 @@ catch ME
     logIt(LOG, errorStr)
     rethrow(ME)
 end
-
+%{
 for n=1:numel(bucket);
     currentLog = sprintf(['bucket %g has %g elements, starting with ', ...
     '(x, y) ordered pair, (%g, %g)'], ...
@@ -232,6 +233,7 @@ for n=1:numel(bucket);
 
     logIt(LOG, currentLog)
 end  %LOG BUCKET
+%}
 logIt(LOG, logTime('5: assign_to_bucket')); 
 
 %% 6-9. Expanding Block Comparison:
@@ -252,7 +254,7 @@ parfor n=1:N
     for m = 1:M
         
         bucket{n} = process_bucket(bucket{n}, S(m), init);
-        
+        %{
         if isempty(bucket{n}.x)
             
             process_log{n, m} = sprintf(['bucket %g is empty after ' ...
@@ -263,6 +265,7 @@ parfor n=1:N
             n, S(m), num2str(bucket{n}.x), num2str(bucket{n}.y));
         
         end
+        %}
     end
 end
 
@@ -271,7 +274,7 @@ for n=1:N
         logIt(LOG, process_log{n, m})
     end
 end  % LOG RESULTS
-logIt(LOG, logTime('6:9: Expanding Block Comparison'));; 
+logIt(LOG, logTime('6:9: Expanding Block Comparison'));
 
 %% 10: FLAG if presumed modified
 

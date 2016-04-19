@@ -6,7 +6,11 @@ index = 1:N:numel(block.x);
 index = floor(index);
 for n = 1:(init.numBuckets-1)
     group_start = index(n);
-    group_end = index(n+1)-1;
+    try group_end = index(n+1)-1;
+    catch ME
+        error('more buckets: %g than blocks: %g', ...
+            init.numBuckets, numel(block.x));
+    end
     group{n} = overlap_block;
     group{n}.x = block.x(group_start:group_end);
     group{n}.y = block.y(group_start:group_end);
