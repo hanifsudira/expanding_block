@@ -63,8 +63,8 @@ for j = 1:N
         pixel2, sigmaSq(:, j));
 end
 
-pValThreshold = 2   ;
-too_similar  = test_statistic > pValThreshold;
+ pvalThreshold = chi2inv(.01,S^2); 
+too_similar  = test_statistic < pvalThreshold;
 
 % if test statistic is greater than threshless than threshhold OR blocks
 % overlap, set the connection matrix to zero there
@@ -96,6 +96,11 @@ to_keep.variance = bucket.variance(key);
 
 %$ OUTPUT BUCKET
 bucket = to_keep;
+
+if numel(bucket.x)*init.blockSize < init.minArea
+    clear bucket;
+    bucket = overlap_block;
+end
 
 %% DIAGNOSTICS:
 %try assert(any(too_similar), '')
