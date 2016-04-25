@@ -1,4 +1,4 @@
-function init = set_expand_block_init(img);
+function init = set_expand_block_init(img)
 [rows, cols, ~] = size(img);
 init = expand_block_init;
 
@@ -9,9 +9,9 @@ if rows*cols < 50^2;
     init.minArea = 32;
 elseif rows*cols <= 150^2
     init.blockSize = 4;
-    init.blockDistance = 4;
-    init.numBuckets = 500;
-    init.minArea = 32;
+    init.blockDistance = 1;
+    init.numBuckets = 400;
+    init.minArea = 50;
 elseif rows*cols <= 350^2
     init.blockSize = 8;
     init.blockDistance = 1;

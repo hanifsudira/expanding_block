@@ -1,15 +1,15 @@
-function [block] = block_sort(block, varargin)
+    function [block] = block_sort(block, varargin)
 % sorts lexigraphically blocks by average gray value or variance
 % input: block_sort(block, 'variance') sorts by variance
 % note: no for loops! pretty neat, huh?
 %% INPUT HANDLING
 SORT_BY_VARIANCE = 0;
-REMOVE_ZERO_VARIANCE_BLOCKS = 0;
+REMOVE_LOW_VARIANCE_BLOCKS = 0;
 if nargin > 1;
     for n = 1:length(varargin)
         if strcmp(varargin{n}, 'variance')
             SORT_BY_VARIANCE = 1;
-            REMOVE_ZERO_VARIANCE_BLOCKS = 1;
+            REMOVE_LOW_VARIANCE_BLOCKS = 1;
         end
     end
 end
@@ -42,11 +42,12 @@ key = SORTED(:, 4);
 block.pixel = pixel(key);
 
 %% remove elements with nonzero variance
-if REMOVE_ZERO_VARIANCE_BLOCKS
-    var_nonzero = find(block.variance > 1);
-    block.variance = block.variance(var_nonzero);
-    block.x = block.x(var_nonzero);
-    block.y = block.y(var_nonzero);
-    block.pixel = block.pixel(var_nonzero);
-    block.avg_gray = block.avg_gray(var_nonzero);
+if REMOVE_LOW_VARIANCE_BLOCKS
+    blockSize = numel(block.pixel{1});
+    var_not_tiny = find(block.variance > blockSize);
+    block.variance = block.variance(var_not_tiny);
+    block.x = block.x(var_not_tiny);
+    block.y = block.y(var_not_tiny);
+    block.pixel = block.pixel(var_not_tiny);
+    block.avg_gray = block.avg_gray(var_not_tiny);
 end

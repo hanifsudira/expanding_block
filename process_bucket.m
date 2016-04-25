@@ -20,36 +20,45 @@ end
 sigmaSq = zeros(N);
 var = bucket.variance;
 
-parfor n=1:N
-    sigmaSq(n, :) = (var+var(n))/2;
+for n=1:N
+    sigmaSq(n, :) = double((var+var(n)))/2;
 end
 
-sigmaSq = num2cell(sigmaSq);
+%sigmaSq = num2cell(sigmaSq);
 
-s_index = @(pixel) pixel(1:S, 1:S);
+%s_index = @(pixel) pixel(1:S, 1:S);
 %% Compare the top-left SxS square of each block
-
-
-s_subBlock = cellfun(s_index, bucket.pixel, 'UniformOutput', false);
+s_subBlock = zeros(N, S^2);
+for n=1:N
+    s_subBlock(n, :) = reshape(bucket.pixel{n}(1:S, 1:S), 1, []);
+end
 %fprintf('the size of s_subBlock is %g by %g', ...
  %   size(s_subBlock, 1), size(s_subBlock, 2));
 %for n=1:5;
 %    disp(s_subBlock{n})
 %end
-s_subBlock = repmat(s_subBlock, N, 1);  % we copy to avoid for loops;
-pixel2 = s_subBlock(1, :)';
+%s_subBlock = repmat(s_subBlock, N, 1);  % we copy to avoid for loops;
+%pixel2 = s_subBlock(1, :)';
 
 % create test statistic to determine whether blocks are too similar
-    test = @(pixel1, pixel2, sigmaSq) reshape((pixel1-pixel2), 1, [])* ...
-        reshape((pixel1-pixel2), [], 1) ./ (sigmaSq./ (S^2) );
-    test_statistic = zeros(N);
+%test = @(pixel1, pixel2, sigmaSq) reshape((pixel1-pixel2), 1, [])* ...
+%    reshape((pixel1-pixel2), [], 1) ./ (sigmaSq./ (S^2) );
+test_statistic = zeros(N);
+
+for n=1:N
+    for m=1:N
+    pixel_diff = double(s_subBlock(n, :) - s_subBlock(m, :));
+    test_statistic(n, m) = (pixel_diff * pixel_diff')  / ...
+        (sigmaSq(n,m) / S);
+    end
+end
     
 %% TYPE CONVERSION
-toDouble = @(A) double(A);
-s_subBlock = cellfun(toDouble, s_subBlock, 'UniformOutput', false);
-
-pixel2 = cellfun(toDouble, pixel2, 'UniformOutput', false);
-sigmaSq = cellfun(toDouble, sigmaSq, 'UniformOutput', false);
+% toDouble = @(A) double(A);
+% s_subBlock = cellfun(toDouble, s_subBlock, 'UniformOutput', false);
+% 
+% pixel2 = cellfun(toDouble, pixel2, 'UniformOutput', false);
+% sigmaSq = cellfun(toDouble, sigmaSq, 'UniformOutput', false);
 
 %  %% DIAGNOISTIC
 %fprintf('the size of sigmaSq is %g', size(sigmaSq(:, 1), 1))
@@ -58,12 +67,12 @@ sigmaSq = cellfun(toDouble, sigmaSq, 'UniformOutput', false);
 %disp(abs((pixel2{3}-s_subBlock{3});
 %disp(abs((pixel2{5}-s_subBlock{5});
 %% CALCULATE TEST STATISTIC
-for j = 1:N
-    test_statistic(:, j) = cellfun(test, s_subBlock(:, j), ...
-        pixel2, sigmaSq(:, j));
-end
+% for j = 1:N
+%     test_statistic(:, j) = cellfun(test, s_subBlock(:, j), ...
+%         pixel2, sigmaSq(:, j));
+% end
 
- pvalThreshold = chi2inv(.01,S^2); 
+pvalThreshold = chi2inv(0.01, S^2); 
 too_similar  = test_statistic < pvalThreshold;
 
 % if test statistic is greater than threshless than threshhold OR blocks
@@ -98,7 +107,7 @@ to_keep.variance = bucket.variance(key);
 bucket = to_keep;
 
 if numel(bucket.x)*init.blockSize < init.minArea
-    clear bucket;
+    bucket = [];                   % clear it
     bucket = overlap_block;
 end
 
