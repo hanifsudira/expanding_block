@@ -1,6 +1,7 @@
 function [IMAGE_PRESUMED_MODIFIED, mask, imgOut] =  ...
-    expanding_block_final(imgIn, varargin)
+    expanding_block_final(imgIn)
 tic
+DEBUG = 1;
 % Detects copy-move forgery via an expanding block method.
 
 
@@ -16,7 +17,6 @@ tic
 % INPUT
 %{
     imIn: a RGB image, either as an mxnx3 array or a string
-    varargin: an expand_block_init OBJECT: parameters described in expanding_block_init.m.    
 %}
 
 % OUTPUT
@@ -63,10 +63,9 @@ blocks and holds in array
 
 %}
 
-tic;
 
-toRow = @(A) reshape(A, 1, []);
-toCol = @(A) reshape(A, [], 1);
+%toRow = @(A) reshape(A, 1, []);
+%toCol = @(A) reshape(A, [], 1);
 %% 0: IMPORT HANDLING
 imgIn = import_image(imgIn);
 
@@ -83,13 +82,12 @@ else
 
 end
 
-assert(nargin <= 2, 'at most one varargin')
-if nargin == 2
-    init = varargin{1};
-    assert(isa(init, 'expand_block_init'), ['varargin must be an' ...
-        'expand_block init OBJECT']);
-else
-    init = expand_block_init;
+init = set_expand_block_init(imgIn);
+if DEBUG
+    fprintf('init.blockSize = %g\n', init.blockSize)
+    fprintf('init.blockDistance = %g\n', init.blockDistance)
+    fprintf('init.minArea = %g\n', init.minArea)
+    fprintf('init.numBuckets = %g\n', init.numBuckets)
 end
 
 
@@ -122,7 +120,7 @@ block = block_variance(block);
 %
 block = block_sort(block, 'variance');
 
-number_of_blocks = numel(block.x);
+%number_of_blocks = numel(block.x);
 
 
 %logIt(LOG, ['the SORTED variance is: \n', num2str(toRow(block.variance))]);
@@ -146,17 +144,26 @@ S = 1:m;
 
 S = 2.^S;
 
-% PROCESS BUCKETS IN PARALLEL.
 % this is the most computationally intensive step. the program can be most
 % significantly computationally improved by improving the speed of this
 % step
 N = numel(bucket);
 M = numel(S);
 
-parfor n=1:N
+last_percent = 0;
+for n=1:N
+    if DEBUG
+       current_percent = floor(100*n/N);
+       if current_percent > last_percent
+           last_percent = current_percent;
+           fprintf(' %g percent complete! (bucket %g / %g\n', ...
+               current_percent, n, N);
+       end
+    end
     for m = 1:M       
         bucket{n} = process_bucket(bucket{n}, S(m), init);
     end
+    
 end
 
 
