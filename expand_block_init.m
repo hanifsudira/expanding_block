@@ -1,21 +1,20 @@
 classdef expand_block_init
-    %expanding block algorithm settings
+% settings for expanding_block algorithm. set adaptively by
+% set_expanding_block_init
     properties
-        blockSize = 32 
+        blockSize
         % width and height of a block; total is blockSizeAin^2.
         
-        blockDistance = 16   
+        blockDistance   
         % distance between blocks; generally 1/4 of block size
         
-        numBuckets = 128
+        numBuckets
         % number of buckets used to compare blocks
         
-        pvalThreshold = 9.68
+        pvalThreshold
+        % depreciated. set in process_block
         
-        minArea = nan
+        minArea
         % threshold f   or block comparison
-        
-        tol = 10^-3
-        % temporary tolerance for svd_block
     end
 end

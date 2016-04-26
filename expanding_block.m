@@ -20,13 +20,16 @@ tic
 
 % OUTPUT
 %{
+    IMAGE_PRESUMED_MODIFIED = a logical flag. 1 if image modified, else 0.
+
     mask:   a spare 2d array the same width and height as image_in, 
             with value 1 in regions considered 'copies' and value 0
             elsewhere
 
-    imgOut: the original image, grayscaled, except at pixels with '1's in
-            the mask. these areas are given red channel values of 255.
- 
+    imgOut: [Original Image | 8 x col separator | masked image], where the
+    separator is BLUE (0, 0, 255). The masked image is the original
+    image grayscaled, and then overwritten in RED (255, 0, 0) by the mask.
+
 % LIST OF DEPENDENCIES
 OBJECTS:
 expand_block_init: an OBJECT which contains the parameters for this
@@ -75,8 +78,10 @@ if nargin >1
     end
 end
 
-imgIn = import_image(imgIn);
-
+% if imgIn is a filename, convert to matrix;
+if ischar(imgIn)
+    imgIn = imread(imgIn);
+end
 
 % grayscale image and trim to a size divisible by init.blockDistance
 

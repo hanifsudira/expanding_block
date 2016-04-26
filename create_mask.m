@@ -1,4 +1,6 @@
 function mask = create_mask(bucket, init, imgIn)
+% use saved x and y positions to mark blocks considered copied.
+% the mask is one in those areas and zero elsewhere
 [rows, cols, ~] = size(imgIn);
 mask = zeros(rows, cols);
 x = [];
@@ -17,4 +19,6 @@ for n=1:N
     mask(y(n):y2(n), x(n):x2(n)) = ...
         mask(y(n):y2(n), x(n):x2(n))+1;
 end
+% convert to logical
+mask = mask > 0;
 end

@@ -1,6 +1,6 @@
 function LOG_FILENAME = makeLog(calling_function_name)
 %MAKES A LOGFILE for the calling function. calling_function name is a
-%CHARACTER ARRAY.
+%CHARACTER ARRAY. 
 
 current_time = char(datetime('now','TimeZone','local','Format', ...
     'd-MMM-y-HH_mm'));

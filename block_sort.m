@@ -3,6 +3,7 @@
 % input: block_sort(block, 'variance') sorts by variance
 % note: no for loops! pretty neat, huh?
 %% INPUT HANDLING
+
 SORT_BY_VARIANCE = 0;
 REMOVE_LOW_VARIANCE_BLOCKS = 0;
 if nargin > 1;
