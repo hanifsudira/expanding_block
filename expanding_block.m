@@ -211,5 +211,6 @@ end
 
 if DEBUG
     toc
+    imshow(imgOut);
 end
 end

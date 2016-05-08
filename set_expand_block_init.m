@@ -16,17 +16,17 @@ elseif rows*cols <= 350^2
     init.blockSize = 8;
     init.blockDistance = 1;
     init.numBuckets = 5000;
-    init.minArea = 256;
+    init.minArea = 50;
 elseif rows*cols <= 700^2
     init.blockSize = 8;
     init.blockDistance = 1;
     init.numBuckets = 12000;
-    init.minArea = 256;
+    init.minArea = 50;
 else
-    init.blockSIze = 8;
+    init.blockSize = 8;
     init.blockDistance = 1;
     init.numBuckets = round(rows*cols/128);
-    init.minArea = 256;
+    init.minArea = 50;
 end
 end
     
