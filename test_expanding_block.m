@@ -14,7 +14,7 @@ for n=1:numel(filenames)
     fprintf('starting expanding_block on file %g/8: \n%s', ...
         n, input_filename);
     
-    [flag, ~, imgOut] = expanding_block(filename);
+    [flag, ~, imgOut] = expanding_block(input_filenamefilename);
     if flag
         fprintf('file considered modified. saving output to %s', ...
             output_filename)
